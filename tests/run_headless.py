@@ -8,6 +8,34 @@ import sys
 from tempfile import TemporaryDirectory
 
 
+PROJECT = Path(__file__).resolve().parents[1]
+DEFAULT_TOOLS = PROJECT / "tests/.headless"
+
+# Older dev checkouts use "/" as their headless user-data directory.
+LEGACY_PROFILE = b"""
+local loadFile = dofile
+dofile = function(path)
+    if path ~= "_SimpleGraphic.def.lua" then return loadFile(path) end
+    dofile = loadFile
+    local result = loadFile(path)
+    local loadModule = PLoadModule
+    PLoadModule = function(name, ...)
+        if name ~= "Modules/Main" then return loadModule(name, ...) end
+        PLoadModule = loadModule
+        local err, module = loadModule(name, ...)
+        if module and module.ChangeUserPath then
+            local changeUserPath = module.ChangeUserPath
+            module.ChangeUserPath = function(self, userPath, ...)
+                if userPath == "/" then userPath = os.getenv("POB_HEADLESS_PROFILE") .. "/" end
+                return changeUserPath(self, userPath, ...)
+            end
+        end
+        return err, module
+    end
+    return result
+end
+"""
+
 BOOTSTRAP = b"""
 arg = { [0] = "HeadlessWrapper.lua" }
 local read = io.read
@@ -19,11 +47,22 @@ assert(not startupError and newBuild, "Path of Building failed to initialise")
 """
 
 
-def busted_chunk(arguments):
-    def quote(value):
-        return '"' + "".join(f"\\{byte:03d}" for byte in value.encode("utf-8")) + '"'
+def tool_tree(tools):
+    marker = tools / "active-tree.txt"
+    if not marker.is_file():
+        return tools
+    name = marker.read_text(encoding="ascii").strip()
+    if not name.startswith("busted-") or Path(name).name != name:
+        raise RuntimeError(f"Invalid Busted toolchain marker {marker}")
+    return tools / name
 
-    options = ", ".join(quote(argument) for argument in arguments)
+
+def lua_quote(value):
+    return '"' + "".join(f"\\{byte:03d}" for byte in value.encode("utf-8")) + '"'
+
+
+def busted_chunk(arguments):
+    options = ", ".join(lua_quote(argument) for argument in arguments)
     return f"""
 arg = {{ [0] = "busted", {options} }}
 local exitStatus
@@ -71,7 +110,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--busted", action="store_true", help="run the project's Busted suite")
     parser.add_argument("--tools", type=Path, help="Busted's LuaRocks tree (default: tests/.headless)")
-    parser.add_argument("--repo", type=Path, default=Path(__file__).resolve().parents[1])
+    parser.add_argument("--repo", type=Path, default=PROJECT)
     parser.add_argument("arguments", nargs=argparse.REMAINDER, help="Lua file, -, or Busted arguments after --")
     args = parser.parse_args()
     if sys.platform != "win32" or ctypes.sizeof(ctypes.c_void_p) != 8:
@@ -88,10 +127,10 @@ def main():
         lua_path = [f"{runtime.as_posix()}/lua/?.lua", f"{runtime.as_posix()}/lua/?/init.lua"]
         lua_cpath = [f"{runtime.as_posix()}/?.dll"]
         if args.busted:
-            tools = (args.tools or Path(__file__).resolve().parent / ".headless").resolve()
+            tools = tool_tree((args.tools or DEFAULT_TOOLS).resolve())
             share = (tools / "share/lua/5.1").as_posix()
             if not (Path(share) / "busted/runner.lua").is_file():
-                raise RuntimeError(f"Busted is missing from {tools}. See tests/README.md.")
+                raise RuntimeError(f"Busted is missing from {tools}. Run py tests/setup_headless.py.")
             lua_path[:0] = [f"{share}/?.lua", f"{share}/?/init.lua"]
             lua_cpath.insert(0, f"{tools.as_posix()}/lib/lua/5.1/?.dll")
             os.chdir(repo)
@@ -104,6 +143,8 @@ def main():
                 name, source = "@" + str(path), path.read_bytes()
             os.chdir(repo / "src")
             chunks = [("=headless bootstrap", BOOTSTRAP), (name, source)]
+        if b"POB_HEADLESS_PROFILE" not in (repo / "src/HeadlessWrapper.lua").read_bytes():
+            chunks.insert(0, ("=legacy headless profile", LEGACY_PROFILE))
         os.environ["LUA_PATH"] = ";".join(lua_path) + ";;"
         os.environ["LUA_CPATH"] = ";".join(lua_cpath) + ";;"
         os.environ["CI"] = "true"
