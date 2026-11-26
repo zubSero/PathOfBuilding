@@ -200,6 +200,7 @@ local function newLethalPride()
 		"Lethal Pride\n" ..
 		"Timeless Jewel\n" ..
 		"Radius: Large\n" ..
+		"Limited to: 1 Historic\n" ..
 		"Implicits: 0\n" ..
 		"Commanded leadership over 10000 warriors under Kaom\n")
 end
@@ -339,6 +340,44 @@ it and your Class' starting location
 		local equipped = build.calcsTab.mainOutput.Str
 		assert.is_true(equipped - baseline.Str > 5)
 		assert.are.equal(equipped, preview.Str)
+	end)
+
+	it("applies the Historic limit on load and when the configuration changes", function()
+		-- Exercise the Karui small-node rules without depending on a generated data file.
+		local readLUT = data.readLUT
+		finally(function() data.readLUT = readLUT end)
+		data.readLUT = function() return { 0 } end
+		for _, id in ipairs({ 26196, 26725 }) do
+			local socket = build.spec.nodes[id]
+			build.spec:AllocNode(socket)
+			equipJewelInSocket(newLethalPride(), socket)
+		end
+		build.spec:BuildAllDependsAndPaths()
+		rebuildBuild()
+		loadBuildFromXML(build:SaveDB("code"))
+
+		local opened = build.calcsTab.mainOutput.Str
+		build.spec:BuildAllDependsAndPaths()
+		rebuildBuild()
+		local limited = build.calcsTab.mainOutput.Str
+		assert.are.equal(limited, opened)
+		assert.is_truthy(build.calcsTab.mainEnv.itemWarnings.jewelLimitWarning)
+
+		local calculate = build.calcsTab:GetMiscCalculator()
+		calculate({ repSlotName = "Jewel 26196" })
+		build.spec:BuildAllDependsAndPaths()
+		rebuildBuild()
+		assert.are.equal(limited, build.calcsTab.mainOutput.Str)
+
+		build.configTab.input.ignoreJewelLimits = true
+		build.configTab:BuildModList()
+		rebuildBuild()
+		assert.is_true(build.calcsTab.mainOutput.Str > limited)
+		assert.is_nil(build.calcsTab.mainEnv.itemWarnings.jewelLimitWarning)
+		build.configTab.input.ignoreJewelLimits = false
+		build.configTab:BuildModList()
+		rebuildBuild()
+		assert.are.equal(limited, build.calcsTab.mainOutput.Str)
 	end)
 
 	it("Lethal Pride item parses conqueredBy correctly", function()
