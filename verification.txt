@@ -1,0 +1,10 @@
+
+PoE 3.30, PoB base bfee69d
+=========================
+
+Both images use the same Shadow / Assassin build, Reclaimed Malevolence seed 6696 at socket 41263, and hover Opportunistic.
+
+The regression spec reads the bundled multipart archive. It fails on the base at the expected From Below assertion and passes on the fix, including the seed finder. The Windows suite passed 929 tests on the same decoded candidate archive. The final published archive preserves the original compressed prefix.
+
+The one changed archive part contains an updated ASCS section. The 3.30 tree and the public deterministic selection walk reproduce all 165,921 upstream selections using the original cost cutoff. Allowing 4-point notables changes 65 Assassin targets to Opportunistic. The attached JSON is the complete model delta. The game evidence in #10584 confirms seed 6696. The other changed targets are model predictions. The node replacement and stat-roll section is byte-identical before and after decoding.
+
