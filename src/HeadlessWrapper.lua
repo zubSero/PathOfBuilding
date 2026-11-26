@@ -38,6 +38,7 @@ dofile("Launch.lua")
 -- Allows running mod parsing related tests without pushing ModCache
 -- The CI env var will be true when run from github workflows but should be false for other tools using the headless wrapper 
 __mainObject__.continuousIntegrationMode = os.getenv("CI")
+__mainObject__.headlessProfilePath = os.getenv("POB_HEADLESS_PROFILE")
 
 runCallback("OnInit")
 runCallback("OnFrame") -- Need at least one frame for everything to initialise
