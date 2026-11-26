@@ -4889,7 +4889,7 @@ function ItemsTabClass:AddItemStatDifferences(tooltip, item, base, slot)
 				local base = flaskData.lifeBase * (1 - instantPerc / 100) * (1 + lifeInc / 100) * lifeMore * (1 + effectInc / 100) * (1 + durInc / 100) * lowLifeMulti
 				local grad = base * output.LifeRecoveryRateMod
 				local esGrad = base * output.EnergyShieldRecoveryRateMod
-				lifeDur = flaskData.duration * (1 + durInc / 100) / (1 + rateInc / 100) / (1 + lifeRateInc / 100) / lifeRateMore
+				lifeDur = flaskData.duration * (1 + durInc / 100) / (1 + (rateInc + lifeRateInc) / 100) / lifeRateMore
 
 				-- LocalLifeFlaskAdditionalLifeRecovery flask mods
 				if flaskData.lifeAdditional > 0 and not self.build.configTab.input.conditionFullLife then

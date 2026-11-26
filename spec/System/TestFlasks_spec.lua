@@ -32,6 +32,22 @@ describe("Flasks", function()
 		assert.are.equal(baselineOutput.LifeRecovery / 2, reducedOutput.LifeRecovery)
 	end)
 
+	it("adds generic and life-specific flask recovery rates in item tooltips", function()
+		buildLifeFlask("30% increased Flask Recovery Rate\n34% increased Flask Life Recovery Rate\n50% less Flask Life Recovery rate")
+		local item = build.itemsTab.items[build.itemsTab.slots["Flask 1"].selItemId]
+		local tooltip = new("Tooltip"):Tooltip()
+		build.itemsTab:AddItemStatDifferences(tooltip, item, item.base)
+
+		local duration = string.format("%.2fs", item.flaskData.duration / 1.64 / 0.5)
+		for _, line in ipairs(tooltip.lines) do
+			if line.text:find("Life recovered:", 1, true) then
+				assert.is_truthy(line.text:find(duration, 1, true), line.text)
+				return
+			end
+		end
+		error("Life recovery is missing from the flask tooltip")
+	end)
+
 	it("applies Regenerative Runes only to Iron Flasks", function()
 		local baseline = buildUtilityFlasks()
 		local increased = buildUtilityFlasks("20% increased Effect of Iron Flasks")
