@@ -65,6 +65,20 @@ py tests/check_headless.py batch --linux --backend wsl --distro Ubuntu
 
 For a published PR, `py tests/check_headless.py ci 10585` reads the existing GitHub jobs. It requires a pass from both jobs and returns exit code 8 while results are pending or missing.
 
+## Log Timeless Jewel checks
+
+Add reproducible cases and data comparisons to [the Timeless Jewel audit log](timeless-jewel-audit.json). Track coverage work in [PoB issue #10601](https://github.com/PathOfBuildingCommunity/PathOfBuilding/issues/10601).
+
+- Record the tree version, jewel, seed, variant, socket and relevant build inputs. Include the exact target passive, replacement or stat rolls and link the source of the expected result.
+- Record the expected result's evidence type. Use `in_game` for a direct game observation and `packaged_data` for values read from a versioned PoB archive. Keep predicted results and counts under `model_comparisons`.
+- Pin the PoB revisions and record what the equipped tree, jewel finder and final build modifiers actually do when each applies. Record any downstream data revision and result separately.
+- For a generation run, keep the full diff of changed cases and record the scope and counts in the audit log. Add a new entry when the game data or verified results change.
+
+```powershell
+$audit = Get-Content -Raw tests/timeless-jewel-audit.json | ConvertFrom-Json
+$audit.cases | Select-Object issue, tree_version, jewel, seed, @{Name='Evidence'; Expression={$_.expected.kind}}
+```
+
 ## Capture PoB screenshots on Windows
 
 The screenshot runner uses PoB's renderer on a private Windows desktop. It keeps the active desktop in place and loads the requested Git revision in a temporary worktree with its own build and settings directories. The runtime writes a JPEG, and the runner exits after copying it to the requested destination.

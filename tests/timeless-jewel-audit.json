@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "tracking_issue": "https://github.com/PathOfBuildingCommunity/PathOfBuilding/issues/10601",
+  "cases": [
+    {
+      "issue": 10584,
+      "tree_version": "3.30",
+      "jewel": "Reclaimed Malevolence",
+      "variant": "Zorath",
+      "seed": 6696,
+      "socket_id": 41263,
+      "class": "Shadow",
+      "ascendancy": "Assassin",
+      "expected": {
+        "kind": "in_game",
+        "source": "https://github.com/PathOfBuildingCommunity/PathOfBuilding/issues/10584#issuecomment-7185591944",
+        "node_id": 19083,
+        "original_passive": "Opportunistic",
+        "replacement": "From Below"
+      },
+      "baseline": {
+        "pob_commit": "bfee69d10cceef87b7125155645b4d03091ac6ac",
+        "node_id": 19598,
+        "original_passive": "Toxic Delivery",
+        "replacement": "Ephemeral Bolts"
+      },
+      "fix": {
+        "pull_request": "https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/10600",
+        "pob_commit": "2bcdfc7e5781667ad7efe6a8f4f9f699472e7114",
+        "verified_surfaces": ["equipped tree and tooltip", "Find Timeless Jewel"],
+        "regression": "https://github.com/zubSero/PathOfBuilding/blob/2bcdfc7e5781667ad7efe6a8f4f9f699472e7114/spec/System/TestAbyssTimelessJewel_spec.lua"
+      },
+      "downstream_observations": [
+        {
+          "tool": "TimelessCalc",
+          "checked_on": "2026-11-26",
+          "data_version": "2026-11-18.1",
+          "pob_commit": "a41fec6c20f822a658ae5df1273e8c69d5969bac",
+          "node_id": 19598,
+          "result": "differs from the in-game result",
+          "repro": "repros/10584-timelesscalc.ps1",
+          "source": "https://timelesscalc.com/data-status/"
+        }
+      ]
+    },
+    {
+      "issue": 10432,
+      "tree_version": "3.30",
+      "jewel": "Destructive Aspiration",
+      "variant": "Amanamu",
+      "seed": 100,
+      "socket_id": 26196,
+      "node_id": 35260,
+      "original_passive": "Minion Damage",
+      "expected": {
+        "kind": "packaged_data",
+        "source": "https://github.com/PathOfBuildingCommunity/PathOfBuilding/tree/bfee69d10cceef87b7125155645b4d03091ac6ac/src/Data/TimelessJewelData",
+        "record": "AbyssAmanamu, data.readAbyssJewelLUT(100, 26196, 10)[35260]",
+        "minion_attack_speed_percent": 2,
+        "minion_cast_speed_percent": 3
+      },
+      "baseline": {
+        "pob_commit": "bfee69d10cceef87b7125155645b4d03091ac6ac",
+        "surface": "equipped tree and applied modifier values",
+        "observed_minion_attack_speed_percent": 3,
+        "observed_minion_cast_speed_percent": 3
+      },
+      "fix": {
+        "pull_request": "https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/10561",
+        "regression_note": "The PR has a separate Zorath fixture for unequal minion Attack Speed and Cast Speed rolls."
+      }
+    }
+  ],
+  "model_comparisons": [
+    {
+      "issue": 10584,
+      "tree_version": "3.30",
+      "jewel": "Reclaimed Malevolence",
+      "baseline_pob_commit": "bfee69d10cceef87b7125155645b4d03091ac6ac",
+      "candidate_pob_commit": "2bcdfc7e5781667ad7efe6a8f4f9f699472e7114",
+      "scope": "All 21 Ascendancies and every seed from 100 through 8000",
+      "selection_rows_compared": 165921,
+      "selection_rows_changed": 65,
+      "changed_ascendancy": "Assassin",
+      "in_game_confirmed_changed_seeds": [6696],
+      "delta": "https://raw.githubusercontent.com/zubSero/PathOfBuilding/cbbe3e8909d00cf4b53402d9bec237cb917aaceb/assassin-seed-delta.json",
+      "verification_notes": "https://raw.githubusercontent.com/zubSero/PathOfBuilding/cbbe3e8909d00cf4b53402d9bec237cb917aaceb/verification.txt",
+      "original_generator_check": {
+        "repository": "https://github.com/Regisle/TimelessJewelData",
+        "base_branch": "Generator",
+        "baseline_commit": "8b961a5c0054d618c71387ddeb49f3f868daa09d",
+        "candidate_commit": "e62d9f76856bdb41a27696ebda423f6f894124d7",
+        "pull_request": "https://github.com/Regisle/TimelessJewelData/pull/20",
+        "tree_export": "https://github.com/grindinggear/skilltree-export/blob/550fb34ae7fca9ec4d760a2ac845bb2ba1032ec3/data.json",
+        "shipped_zorath_archive_git_blob": "ee21f4ca290bd91243dd1e4473e08acc258106be",
+        "baseline_seed_6696_node_id": 19598,
+        "candidate_seed_6696_node_id": 19083,
+        "ascendancy_sections_match_pob": "Exact bytes match the shipped PoB ASCS section before the fix and the #10600 ASCS section after the fix."
+      },
+      "independent_calculator_check": {
+        "repository": "https://github.com/Vilsol/timeless-jewels",
+        "issue": "https://github.com/Vilsol/timeless-jewels/issues/63",
+        "baseline_commit": "34f834dd96cfb22cb78c1f57de90c9b1a79e4dc8",
+        "candidate_commit": "c4162dbd6f4456917da3f6f4c1e31266adee8855",
+        "pull_request": "https://github.com/Vilsol/timeless-jewels/pull/62",
+        "baseline_seed_6696_node_id": 19598,
+        "candidate_seed_6696_node_id": 19083,
+        "selection_rows_compared_to_pob_candidate": 165921,
+        "selection_rows_differing_from_pob_candidate": 0,
+        "fixture_source": "https://github.com/Vilsol/timeless-jewels/blob/34f834dd96cfb22cb78c1f57de90c9b1a79e4dc8/testdata/abyss/dump_ascendancy.lua",
+        "regression_status": "Zorath Ascendancy tests pass. The full suite has the same pre-existing region-fixture failure on baseline and candidate, with 612 identical mismatch rows."
+      }
+    }
+  ]
+}
